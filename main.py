@@ -30,6 +30,14 @@ def main():
     # Парсер для команды find
     parser_find = subparsers.add_parser("find", help="Найти пароль по имени сервиса")
     parser_find.add_argument("service", type=str, help="Название сервиса")
+
+    # Парсер для команды list (НОВАЯ КОМАНДА)
+    subparsers.add_parser("list", help="Показать все сохраненные пароли")
+
+    # Парсер для команды delete (НОВАЯ КОМАНДА)
+    parser_delete = subparsers.add_parser("delete", help="Удалить пароль по имени сервиса")
+    parser_delete.add_argument("service", type=str, help="Название сервиса")
+
     # Парсер для интерактивного режима
     subparsers.add_parser("interactive", help="Интерактивный режим (удобный)")
 
@@ -40,6 +48,10 @@ def main():
         handle_generate(args)
     elif args.command == "find":
         handle_find(args)
+    elif args.command == "list":
+        handle_list(args)
+    elif args.command == "delete":
+        handle_delete(args)
     elif args.command == "interactive":
         interactive_mode()
     else:
