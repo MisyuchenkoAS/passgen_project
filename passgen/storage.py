@@ -1,54 +1,23 @@
-"""Модуль работы с хранилищем паролей."""
+"""Модуль работы с хранилищем паролей в базе данных."""
 
-import json
-import os     # файловая система
-from .utils import hash_password
+from .database_postgres import PasswordDB
 
-STORAGE_FILE = "passwords.json"
+# Создаем базу ОДИН РАЗ при запуске программы
+db = PasswordDB()
 
 
 def save_password(service, password):
-    """Сохраняет хэш пароля для указанного сервиса.
+    """Сохраняет хэш пароля для указанного сервиса в базу данных.
 
     Args:
         service (str): Название сервиса (например: 'gmail', 'yandex')
         password (str): Пароль в открытом виде
     """
-    hashed_pw = hash_password(password)
-
-    # Загружаем существующие пароли
-    data = load_all_passwords()
-
-    # Добавляем или обновляем запись
-    data[service] = hashed_pw
-
-    # Обратобка исключений для записи / Сохраняем обратно в файл
-    try:
-        with open(STORAGE_FILE, 'w') as f:
-            json.dump(data, f, indent=4)
-    except IOError as e:
-        print(f"Ошибка записи в файл: {e}")
-
-
-def load_all_passwords():
-    """Загружает все сохранённые пароли из файла.
-
-    Returns:
-        dict: Словарь {сервис: хэш} или пустой словарь если файл не существует
-    """
-    if not os.path.exists(STORAGE_FILE):   # существует ли файл
-        return {}
-
-    try:
-        with open(STORAGE_FILE, 'r') as f:
-            return json.load(f)
-    except (IOError, json.JSONDecodeError) as e:
-        print(f"Ошибка чтения файла: {e}")
-        return {}
+    db.save_password(service, password)
 
 
 def find_password(service):
-    """Находит хэш пароля для указанного сервиса.
+    """Находит хэш пароля для указанного сервиса в базе данных.
 
     Args:
         service: Название сервиса
@@ -56,5 +25,25 @@ def find_password(service):
     Returns:
         str or None: Хэш пароля или None если не найден
     """
-    data = load_all_passwords()  # загружаем все данные из файла
-    return data.get(service)     # поиск по ключу
+    return db.find_password(service)
+
+
+def get_all_passwords():
+    """Возвращает все сохраненные пароли.
+
+    Returns:
+        list: Список кортежей (сервис, хэш_пароля)
+    """
+    return db.get_all_passwords()
+
+
+def delete_password(service):
+    """Удаляет пароль для указанного сервиса.
+
+    Args:
+        service: Название сервиса
+
+    Returns:
+        bool: True если удалено, False если не найдено
+    """
+    return db.delete_password(service)
